@@ -1,0 +1,5 @@
+#ifndef SIM_H
+#define SIM_H
+#include "simport.h"
+
+#endif // SIM_H

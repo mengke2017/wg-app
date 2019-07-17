@@ -1,0 +1,39 @@
+#ifndef GPIO_H
+#define GPIO_H
+
+#include <QMutex>
+#include "type.h"
+
+#define GPIO_1      0
+#define GPIO_2		1
+#define GPIO_3		2
+#define GPIO_4		3
+#define GPIO_5		4
+#define GPIO_6		5
+#define RS485_EN1	6
+#define RS485_EN2	7
+#define PCIE_RST	8
+#define PCIE_POWER	9
+#define ENET1_RST	10
+#define ENET2_RST	11
+#define VBUS_EN		12
+
+class Gpio
+{
+protected:
+    Gpio();
+
+public:
+    static Gpio* getInstance();
+    bool close();
+    void ioctl(int32 io,uint8* ch);
+
+private:
+    bool open();
+
+private:
+    int fd;
+    QMutex mutex;
+};
+
+#endif // GPIO_H

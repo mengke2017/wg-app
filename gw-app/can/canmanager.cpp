@@ -1,0 +1,129 @@
+#include <QTime>
+#include "canmanager.h"
+#include "common/message.h"
+#include "common/systemutils.h"
+#include "common/mydebug.h"
+
+#define TIMER_MSEC  100 //0.1s
+#define CAN_DATA_SUM_MAX    80
+
+CanManager::CanManager(QObject *parent) :
+    QObject(parent)
+{
+    info.sum = 0;
+    info.list.clear();
+    sys = System::getInstance();
+    sys->getSystemPara(&para);
+    collectTimerDef = para.can_collect_interval/TIMER_MSEC;   //单位0.1s,对应TIMER_MSEC
+    if(0 != collectTimerDef) {
+        collectTimer = collectTimerDef;
+    }
+    uploadTimerDef = para.can_upload_interval*1000/TIMER_MSEC;    //单位0.1s,对应TIMER_MSEC
+    if(0 != uploadTimerDef) {
+        uploadTimer = uploadTimerDef;
+    }
+
+    canPort = new CanPort(0,true);   // 开启CAN0 准备接收
+    timer = new QTimer(this);
+    connect(timer,SIGNAL(timeout()),this,SLOT(timeout()));
+    timer->start(TIMER_MSEC);
+    MY_SYSTEM("CanManager Init");
+}
+
+CanManager::~CanManager()
+{
+    canPort->close(0);
+}
+
+void CanManager::timeout()
+{
+    if(sys->paraFlag&PARA_TYPE_CAN_COLLECT) {
+        sys->getSystemPara(&para);
+        collectTimerDef = para.can_collect_interval/TIMER_MSEC;   //单位0.1s,对应TIMER_MSEC
+        if(0 != collectTimerDef) {
+            collectTimer = collectTimerDef;
+        }
+    }
+
+    if(sys->paraFlag&PARA_TYPE_CAN_UPLOAD) {
+        sys->getSystemPara(&para);
+        uploadTimerDef = para.can_upload_interval*1000/TIMER_MSEC;    //单位0.1s,对应TIMER_MSEC
+        if(0 != uploadTimerDef) {
+            uploadTimer = uploadTimerDef;
+        }
+    }
+
+    if(0 != uploadTimerDef) {
+        if(0 != uploadTimer) {
+            uploadTimer -= 1;
+        } else {
+            uploadTimer = uploadTimerDef;  // 上传时间5000ms
+            struct Message msg;
+            msg.data = SystemUtils::u16ToQByteArray(info.sum);
+            if(0 != info.sum) {
+                msg.data += SystemUtils::toQByteArray((uint8*)&info.time,5);
+                uint16 i;
+                for(i = 0;i < info.sum;i++) {
+                    uint32 id = info.list[i].can_id&0x1fffffff;   //
+                    if(id > 0x7ff) {  // 大于是扩展帧 小于是标准帧
+                        id |= 0x40000000;  // id |= 0x40000000;  // 远程帧？？
+                    }
+                    msg.data += SystemUtils::u32ToQByteArray(id);
+                    msg.data += SystemUtils::toQByteArray((uint8*)&info.list[i].data,8);
+                }
+                info.sum = 0;
+                info.list.clear();
+            }
+            emit toNetwork(msg);
+//            qWarning()<<"CANDATA:"<<msg.data.toHex();
+        }
+    }
+
+    if(0 != collectTimerDef) {
+        if(0 != collectTimer) {
+            collectTimer -= 1;
+        } else {
+            collectTimer = collectTimerDef;    // can数据采集时间500ms
+            if(CAN_DATA_SUM_MAX > info.sum) {
+                static QList<can_frame> frame_list;
+
+                frame_list = canPort->read_can_list();
+                canPort->clear_can_list();
+
+                if(!frame_list.isEmpty()) {
+                    QTime time =QTime::currentTime();
+                    int hour = time.hour();
+                    info.time[0] = (hour/10)&0xf;
+                    info.time[0] = (info.time[0]<<4)|(hour%10);
+                    int minute = time.minute();
+                    info.time[1] = (minute/10)&0xf;
+                    info.time[1] = (info.time[1]<<4)|(minute%10);
+                    int second = time.second();
+                    info.time[2] = (second/10)&0xf;
+                    info.time[2] = (info.time[2]<<4)|(second%10);
+                    int msec = time.msec();
+                    info.time[3] = (msec/100)&0xf;
+                    info.time[4] = (msec/10%10)&0xf;
+                    info.time[4] = (info.time[4]<<4)|(msec%10);
+
+                    foreach(can_frame can, frame_list) {
+                        rmRepeatID(can);
+                    }
+                    info.sum = info.list.count();
+                }
+            }
+        }
+    }
+}
+void CanManager::rmRepeatID (can_frame can) {
+    for(int j = 0; j < info.list.count();) {
+        if(info.list.at(j).can_id == can.can_id) {
+            info.list.removeAt(j);
+            j--;
+        }
+        j++;
+    }
+    info.list.append(can);
+}
+
+

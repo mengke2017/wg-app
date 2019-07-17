@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/uart
+END
+serialport.h
+K 25
+svn:wc:ra_dav:version-url
+V 122
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/uart/serialport.h
+END
+serialport.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/4/adapter/adapter/uart/serialport.cpp
+END

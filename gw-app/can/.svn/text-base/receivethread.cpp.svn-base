@@ -1,0 +1,45 @@
+#include <QMetaType>
+#include "receivethread.h"
+#include "common/mydebug.h"
+
+#define CAN_FRAME_SIZE  sizeof(struct can_frame)
+
+ReceiveThread::ReceiveThread(int32 s,QObject *parent) :
+    QThread(parent)
+{
+    socket  = s;
+    running = true;
+    qRegisterMetaType<can_frame>("can_frame");
+}
+
+void ReceiveThread::run()
+{
+    int32 nbytes;
+    int32 len;
+    struct can_frame frame;
+    struct sockaddr_can addr;
+
+    while(running)
+    {
+        nbytes=recvfrom(socket,&frame,CAN_FRAME_SIZE,0,(struct sockaddr *)&addr,(socklen_t*)&len);
+        if(nbytes>0){
+            if (filter(frame.can_id)) {
+                emit msg(frame);
+            }
+        }
+    }
+}
+
+void ReceiveThread::stop()
+{
+    running = false;
+}
+
+bool ReceiveThread::filter(canid_t id) {
+    switch (id&0x1fffffff) {
+    case 0x18FFD017:
+    case 0x18FED925:
+    case 0x18FFD117: return true;
+    default: return false;
+    }
+}

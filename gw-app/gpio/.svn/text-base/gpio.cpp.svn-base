@@ -1,0 +1,145 @@
+#include "constant.h"
+#include "common/mydebug.h"
+#include "gpio.h"
+#include "gpio_c.h"
+
+#define _IOC_NRBITS	8
+#define _IOC_TYPEBITS	8
+#define _IOC_SIZEBITS	13
+#define _IOC_DIRBITS	3
+
+#define _IOC_NRSHIFT	0
+#define _IOC_TYPESHIFT	(_IOC_NRSHIFT+_IOC_NRBITS)
+#define _IOC_SIZESHIFT	(_IOC_TYPESHIFT+_IOC_TYPEBITS)
+#define _IOC_DIRSHIFT	(_IOC_SIZESHIFT+_IOC_SIZEBITS)
+
+#define _IOC_NONE	1U
+#define _IOC_READ	2U
+#define _IOC_WRITE	4U
+
+#define _IOC(dir,type,nr,size)			\
+    ((unsigned int)				\
+     (((dir)  << _IOC_DIRSHIFT) |		\
+      ((type) << _IOC_TYPESHIFT) |		\
+      ((nr)   << _IOC_NRSHIFT) |		\
+      ((size) << _IOC_SIZESHIFT)))
+
+/* used to create numbers */
+#define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
+
+#define GPIO_U_IOCTL_BASE 'x'
+
+#define GPIO_SIGNAL_1		_IO(GPIO_U_IOCTL_BASE,0)
+#define GPIO_SIGNAL_2		_IO(GPIO_U_IOCTL_BASE,1)
+#define GPIO_SIGNAL_3		_IO(GPIO_U_IOCTL_BASE,2)
+#define GPIO_SIGNAL_4		_IO(GPIO_U_IOCTL_BASE,3)
+#define GPIO_SIGNAL_5		_IO(GPIO_U_IOCTL_BASE,4)
+#define GPIO_SIGNAL_6		_IO(GPIO_U_IOCTL_BASE,5)
+#define GPIO_RS485_EN1		_IO(GPIO_U_IOCTL_BASE,6)
+#define GPIO_RS485_EN2		_IO(GPIO_U_IOCTL_BASE,7)
+#define GPIO_PCIE_RST		_IO(GPIO_U_IOCTL_BASE,8)
+#define GPIO_PCIE_POWER		_IO(GPIO_U_IOCTL_BASE,9)
+#define GPIO_ENET1_RST		_IO(GPIO_U_IOCTL_BASE,10)
+#define GPIO_ENET2_RST		_IO(GPIO_U_IOCTL_BASE,11)
+#define GPIO_VBUS_EN		_IO(GPIO_U_IOCTL_BASE,12)
+
+Gpio::Gpio()
+{
+    fd = -1;
+    open();
+}
+
+Gpio* Gpio::getInstance()
+{
+    static Gpio instance;
+    return &instance;
+}
+
+bool Gpio::open()
+{
+    if(fd != -1) {
+        MY_WARNING("is aready opened!");
+        return false;
+    }
+
+    QString name = GPIO;
+    fd = gpio_open(name.toLatin1().data());
+    if(fd == -1) {
+        MY_WARNING("gpio open erro!");
+        return false;
+    }
+
+    return true;
+}
+
+bool Gpio::close()
+{
+    mutex.lock();
+    if(fd != -1) {
+        gpio_close(fd);
+        fd = -1;
+        mutex.unlock();
+        return true;
+    }
+    mutex.unlock();
+    return false;
+}
+
+void Gpio::ioctl(int32 io,uint8* value)
+{
+    mutex.lock();
+    switch(io) {
+    case GPIO_1:
+        gpio_ioctl(fd,GPIO_SIGNAL_1,value);
+        break;
+
+    case GPIO_2:
+        gpio_ioctl(fd,GPIO_SIGNAL_2,value);
+        break;
+
+    case GPIO_3:
+        gpio_ioctl(fd,GPIO_SIGNAL_3,value);
+        break;
+
+    case GPIO_4:
+        gpio_ioctl(fd,GPIO_SIGNAL_4,value);
+        break;
+
+    case GPIO_5:
+        gpio_ioctl(fd,GPIO_SIGNAL_5,value);
+        break;
+
+    case GPIO_6:
+        gpio_ioctl(fd,GPIO_SIGNAL_6,value);
+        break;
+
+    case RS485_EN1:
+        gpio_ioctl(fd,GPIO_RS485_EN1,value);
+        break;
+
+    case RS485_EN2:
+        gpio_ioctl(fd,GPIO_RS485_EN2,value);
+        break;
+
+    case PCIE_RST:
+        gpio_ioctl(fd,GPIO_PCIE_RST,value);
+        break;
+
+    case PCIE_POWER:
+        gpio_ioctl(fd,GPIO_PCIE_POWER,value);
+        break;
+
+    case ENET1_RST:
+        gpio_ioctl(fd,GPIO_ENET1_RST,value);
+        break;
+
+    case ENET2_RST:
+        gpio_ioctl(fd,GPIO_ENET2_RST,value);
+        break;
+
+    case VBUS_EN:
+        gpio_ioctl(fd,GPIO_VBUS_EN,value);
+        break;
+    }
+    mutex.unlock();
+}

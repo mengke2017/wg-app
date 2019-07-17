@@ -1,0 +1,83 @@
+#include <QVariant>
+#include "constant.h"
+#include "downloadqueue.h"
+#include "common/mydebug.h"
+
+DownloadQueue::DownloadQueue()
+{
+    isStop = false;
+    mDb = QSqlDatabase::addDatabase("QSQLITE","download");
+    mDb.setDatabaseName(APP_PATH+"/DOWNLOAD.db");
+    if(!mDb.open()) {
+        MY_WARNING("DOWNLOAD.db open fail!");
+        flag = false;
+        return;
+    }
+    mQuery = QSqlQuery(mDb);
+    mQuery.exec("create table if not exists T_DOWNLOAD_MANAGE(type int,md5 varchar,url varchar)");
+    flag = true;
+}
+
+DownloadQueue* DownloadQueue::getInstance()
+{
+    static DownloadQueue instance;
+    return &instance;
+}
+
+void DownloadQueue::getDownloadTask(DownloadQueue::TaskInfo* info)
+{
+    if(!flag)
+        return ;
+
+    mutex.lock();
+    mQuery.prepare("SELECT * FROM T_DOWNLOAD_MANAGE");
+    mQuery.exec();
+    if(mQuery.first()) {
+        bool ok;
+        info->filetype = mQuery.value(0).toInt(&ok);
+        info->md5 = mQuery.value(1).toByteArray();
+        info->url = mQuery.value(2).toString();
+        MY_DEBUG(QString("filetype=%1 md5=%2 url=%3").arg(info->filetype).arg(QString(info->md5)).arg(info->url));
+    }
+    mutex.unlock();
+}
+
+void DownloadQueue::addDownloadTask(TaskInfo info)
+{
+    if(!flag)
+        return ;
+
+    MY_DEBUG(QString("filetype=%1 md5=%2 url=%3").arg(info.filetype).arg(QString(info.md5)).arg(info.url));
+    mutex.lock();
+    if(mQuery.first()) {
+        bool ok;
+        int32 type = mQuery.value(0).toInt(&ok);
+        if(info.filetype == type) {
+            isStop = true;
+        }
+    }
+    mQuery.prepare(QString("DELETE FROM T_DOWNLOAD_MANAGE WHERE type=%1").arg(info.filetype));
+
+    mQuery.prepare("INSERT INTO T_DOWNLOAD_MANAGE (type, md5, url) VALUES (:type, :md5, :url)");
+    mQuery.bindValue(":type", info.filetype);	//给每个插入值标识符设定具体值
+    mQuery.bindValue(":md5", info.md5);
+    mQuery.bindValue(":url", info.url);
+    mQuery.exec();
+    mutex.unlock();
+}
+
+void DownloadQueue::rmDownloadTask()
+{
+    if(!flag)
+        return ;
+
+    mutex.lock();
+    if(isStop) {
+        isStop = false;
+    }
+}
+
+bool DownloadQueue::getTaskStop()
+{
+    return isStop;
+}

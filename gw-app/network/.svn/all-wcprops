@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network
+END
+downloadqueue.h
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/downloadqueue.h
+END
+downloadqueue.cpp.autosave
+K 25
+svn:wc:ra_dav:version-url
+V 139
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/downloadqueue.cpp.autosave
+END
+httptask.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/httptask.cpp
+END
+networkmessage.h
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/networkmessage.h
+END
+networkmanager.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 132
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/11/adapter/adapter/network/networkmanager.cpp
+END
+httptask.h
+K 25
+svn:wc:ra_dav:version-url
+V 123
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/httptask.h
+END
+socketclient.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/4/adapter/adapter/network/socketclient.cpp
+END
+socketconstant.h
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/socketconstant.h
+END
+httpworker.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/httpworker.cpp
+END
+networkmanager.h
+K 25
+svn:wc:ra_dav:version-url
+V 129
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/7/adapter/adapter/network/networkmanager.h
+END
+downloadqueue.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 130
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/downloadqueue.cpp
+END
+socketclient.h
+K 25
+svn:wc:ra_dav:version-url
+V 127
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/socketclient.h
+END
+httpworker.h
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/httpworker.h
+END
+networkmessage.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/svn/%E8%BD%A6%E8%81%94%E7%BD%91%E9%80%82%E9%85%8D%E5%99%A8%E8%BD%AF%E4%BB%B6/!svn/ver/1/adapter/adapter/network/networkmessage.cpp
+END

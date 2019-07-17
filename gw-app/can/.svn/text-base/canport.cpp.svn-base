@@ -1,0 +1,127 @@
+#include "canport.h"
+#include "common/mydebug.h"
+
+#define CAN_FRAME_SIZE  sizeof(struct can_frame)
+
+CanPort::CanPort(int32 num,bool isReceive,QObject *parent) :
+    QObject(parent)
+{
+    recvThread = NULL;
+    socket = 0;
+    memset(&frameData,0,CAN_FRAME_SIZE);
+    isValue = false;
+    start(num,isReceive);
+    MY_SYSTEM(QString("CAN%1 Init isReceive=%2").arg(num).arg(isReceive));
+}
+
+void CanPort::close(int32 num)
+{
+    stop(num);
+}
+
+int32 CanPort::read(void* frame)
+{
+    mutex.lock();
+    if(isValue) {
+        memcpy(frame,&frameData,CAN_FRAME_SIZE);
+        isValue = false;
+        mutex.unlock();
+        return CAN_FRAME_SIZE;
+    }
+    mutex.unlock();
+    return 0;
+}
+
+QList<can_frame> CanPort::read_can_list() {
+    if(isValue) {
+        isValue = false;
+        return can_list;
+    }
+    can_list.clear();
+    return can_list;
+}
+void CanPort::clear_can_list() {
+    can_list.clear();
+}
+void CanPort::send(uint32 id,QString str,int32 len)
+{
+    if(0 == socket) {
+        return;
+    }
+
+    if(len > 8) {
+        MY_WARNING("length of send string must less than 8 bytes");
+        return;
+    }
+
+    struct can_frame frame;
+    memset(&frame,0,CAN_FRAME_SIZE);
+    frame.can_id = id;
+    frame.can_dlc = len;
+    memcpy((char*)frame.data,str.toLatin1().data(),len);
+
+    sendto(socket,&frame,CAN_FRAME_SIZE,0,(struct sockaddr*)&addr,sizeof(addr));
+    return;
+}
+
+void CanPort::start(int32 n,bool isReceive)
+{
+    int32 ret = 0;
+    if(n >= CAN_SUM) {
+        return;
+    }
+
+    system(opt[n].close.toLatin1().data());
+    system(opt[n].set.toLatin1().data());
+    system(opt[n].open.toLatin1().data());
+
+    socket = ::socket(PF_CAN,SOCK_RAW,CAN_RAW);
+
+    struct ifreq ifr;
+    strcpy((char *)(ifr.ifr_name),opt[n].name.toLatin1().data());
+    ioctl(socket,SIOCGIFINDEX,&ifr);
+
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+    ret = bind(socket,(struct sockaddr*)&addr,sizeof(addr));
+
+    struct timeval tv;  // 设置接受超时时间
+    tv.tv_sec = 5;
+    tv.tv_usec =  0;
+    setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+    if (ret < 0) {
+        MY_WARNING("in bind error");
+        socket = 0;
+        return;
+    }
+
+    if(isReceive) {
+        recvThread = new ReceiveThread(socket);
+        connect(recvThread,SIGNAL(msg(can_frame)),this,SLOT(slotMsgHandler(can_frame)));
+        recvThread->start();
+    }
+}
+
+void CanPort::stop(int32 n)
+{
+    if(recvThread) {
+        recvThread->stop();
+        recvThread->wait();
+        recvThread->deleteLater();
+    }
+
+    if(0 != socket) {
+        ::close(socket);
+    }
+    system(opt[n].close.toLatin1().data());
+}
+
+void CanPort::slotMsgHandler(can_frame frame)
+{
+    mutex.lock();
+    memcpy(&frameData,&frame,CAN_FRAME_SIZE);
+    isValue = true;
+    mutex.unlock();
+    can_list.append(frame);
+}
