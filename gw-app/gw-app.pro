@@ -52,7 +52,10 @@ SOURCES += main.cpp \
     pos/posmanager.cpp \
     sim/simport.cpp \
     uart/serialport.cpp \
-    mydaemon.cpp
+    mydaemon.cpp \
+    gpio/gpio_work.cpp \
+    stm/stmUart.cpp \
+    stm/stmManager.cpp
 
 HEADERS += \
     backstagemanager.h \
@@ -71,7 +74,6 @@ HEADERS += \
     file/line.h \
     file/advertising.h \
     gpio/gpio.h \
-    gpio/gpio.c.autosave \
     gpio/gpio_c.h \
     gps/gpsport.h \
     gps/gps.h \
@@ -93,4 +95,7 @@ HEADERS += \
     sim/simport.h \
     uart/serialport.h \
     constant.h \
-    mydaemon.h
+    mydaemon.h \
+    gpio/gpio_work.h \
+    stm/stmUart.h \
+    stm/stmManager.h

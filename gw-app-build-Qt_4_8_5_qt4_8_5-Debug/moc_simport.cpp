@@ -22,7 +22,7 @@ static const uint qt_meta_data_SimPort[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       4,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -36,6 +36,7 @@ static const uint qt_meta_data_SimPort[] = {
  // slots: signature, parameters, type, tag, flags
       51,    8,    8,    8, 0x08,
       63,    8,    8,    8, 0x08,
+      77,    8,    8,    8, 0x0a,
 
        0        // eod
 };
@@ -43,6 +44,7 @@ static const uint qt_meta_data_SimPort[] = {
 static const char qt_meta_stringdata_SimPort[] = {
     "SimPort\0\0data\0readCom(QByteArray)\0"
     "getIMSISuccess()\0readMyCom()\0slotTimeOut()\0"
+    "slotLowPower()\0"
 };
 
 void SimPort::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -55,6 +57,7 @@ void SimPort::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         case 1: _t->getIMSISuccess(); break;
         case 2: _t->readMyCom(); break;
         case 3: _t->slotTimeOut(); break;
+        case 4: _t->slotLowPower(); break;
         default: ;
         }
     }
@@ -92,9 +95,9 @@ int SimPort::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 4)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 4;
+        _id -= 5;
     }
     return _id;
 }

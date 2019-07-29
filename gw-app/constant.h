@@ -51,7 +51,7 @@
 #define APP_FILE_PATH   APP_PATH + "/data/"
 #define LED_FILE_PATH   APP_PATH + "/led/"
 #define DOWNLOAD_PATH   APP_PATH + "/download/"
-#define CAN_CONFIG_PATH APP_FILE_PATH
+#define CAN_CONFIG_PATH APP_PATH
 
 #define DIAL_FLAG_FILE  "/usr/adapter/eth2"
 #endif // CONSTANT_H

@@ -22,7 +22,7 @@ static const uint qt_meta_data_NetworkManager[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      12,   14, // methods
+      13,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -40,10 +40,11 @@ static const uint qt_meta_data_NetworkManager[] = {
      107,   16,   15,   15, 0x0a,
      132,  127,   15,   15, 0x0a,
      153,   16,   15,   15, 0x0a,
-     175,   15,   15,   15, 0x08,
-     185,   16,   15,   15, 0x08,
-     207,  204,   15,   15, 0x08,
-     227,   15,   15,   15, 0x08,
+     175,  127,   15,   15, 0x0a,
+     207,   15,   15,   15, 0x08,
+     217,   16,   15,   15, 0x08,
+     239,  236,   15,   15, 0x08,
+     259,   15,   15,   15, 0x08,
 
        0        // eod
 };
@@ -53,9 +54,10 @@ static const char qt_meta_stringdata_NetworkManager[] = {
     "toLcd(Message)\0toLocal(Message)\0"
     "ledHandler(Message)\0lcdHandler(Message)\0"
     "canHandler(Message)\0data\0gpsHandler(gps_data)\0"
-    "localHandler(Message)\0timeout()\0"
-    "socketMsg(Message)\0is\0socketConnect(bool)\0"
-    "haveIMSI()\0"
+    "localHandler(Message)\0"
+    "gpioInputHandler(unsigned char)\0"
+    "timeout()\0socketMsg(Message)\0is\0"
+    "socketConnect(bool)\0haveIMSI()\0"
 };
 
 void NetworkManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -72,10 +74,11 @@ void NetworkManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _
         case 5: _t->canHandler((*reinterpret_cast< Message(*)>(_a[1]))); break;
         case 6: _t->gpsHandler((*reinterpret_cast< gps_data(*)>(_a[1]))); break;
         case 7: _t->localHandler((*reinterpret_cast< Message(*)>(_a[1]))); break;
-        case 8: _t->timeout(); break;
-        case 9: _t->socketMsg((*reinterpret_cast< Message(*)>(_a[1]))); break;
-        case 10: _t->socketConnect((*reinterpret_cast< bool(*)>(_a[1]))); break;
-        case 11: _t->haveIMSI(); break;
+        case 8: _t->gpioInputHandler((*reinterpret_cast< unsigned char(*)>(_a[1]))); break;
+        case 9: _t->timeout(); break;
+        case 10: _t->socketMsg((*reinterpret_cast< Message(*)>(_a[1]))); break;
+        case 11: _t->socketConnect((*reinterpret_cast< bool(*)>(_a[1]))); break;
+        case 12: _t->haveIMSI(); break;
         default: ;
         }
     }
@@ -113,9 +116,9 @@ int NetworkManager::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 13)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 13;
     }
     return _id;
 }

@@ -36,6 +36,8 @@ public :
 private slots:
     void readMyCom();
     void slotTimeOut();
+public slots:
+    void slotLowPower();
 };
 
 #endif // SIMPORT_H

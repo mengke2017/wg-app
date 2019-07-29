@@ -47,7 +47,8 @@ public:
 private:
     void start(int32 n,bool isReceive);
     void stop(int32 n);
-
+signals:
+    void init();
 private:
     int32 socket;
     struct sockaddr_can addr;
@@ -56,6 +57,9 @@ private:
     QMutex mutex;
     ReceiveThread *recvThread;
     QList<can_frame> can_list;
+
+public:
+    void can_init();
 
 private slots:
     void slotMsgHandler(can_frame frame);

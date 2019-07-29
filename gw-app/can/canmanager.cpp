@@ -1,4 +1,6 @@
 #include <QTime>
+#include <QFile>
+#include <QTextStream>
 #include "canmanager.h"
 #include "common/message.h"
 #include "common/systemutils.h"
@@ -66,6 +68,7 @@ void CanManager::timeout()
                 for(i = 0;i < info.sum;i++) {
                     uint32 id = info.list[i].can_id&0x1fffffff;   //
                     if(id > 0x7ff) {  // 大于是扩展帧 小于是标准帧
+
                         id |= 0x40000000;  // id |= 0x40000000;  // 远程帧？？
                     }
                     msg.data += SystemUtils::u32ToQByteArray(id);
@@ -76,6 +79,7 @@ void CanManager::timeout()
             }
             emit toNetwork(msg);
 //            qWarning()<<"CANDATA:"<<msg.data.toHex();
+//            canPort->can_init();
         }
     }
 
@@ -126,4 +130,6 @@ void CanManager::rmRepeatID (can_frame can) {
     info.list.append(can);
 }
 
-
+void CanManager::can_init() {
+    canPort->can_init();
+}

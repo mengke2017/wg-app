@@ -12,8 +12,11 @@
 
 #define CONFIG_FILE "/etc/boa/data/config.conf"
 #define CONFIG_FILE_BACK "/etc/boa/data/config.conf.back"
-#define CONFIG_NAME "gw-zb"
-#define CONFIG_PASS "12345678"
+
+#define LOGIN_USER "wg-zb"
+#define LOGIN_PASS "123456"
+
+#define PASS_FILE  "/etc/boa/data/password.conf"
 
 #define PARA_DEV_ID "000000100053"
 
@@ -38,6 +41,12 @@ System::System()
 
     initSystemPara();
     initDeviceInfo();
+    // 初始化登录密码
+    if (readPass(&para) < 0) {
+        para.login_pass = LOGIN_PASS;
+        para.login_user.clear();
+        para.login_user.append(model);
+    }
 }
 
 System* System::getInstance()
@@ -94,10 +103,10 @@ void System::initSystemPara()
     }
     query = QSqlQuery(db);
 
-    query.exec("create table if not exists M_USER_MANAGE(heartbeat int,ip varchar,port int,reply int,retrans int,speed int,overspeed int,cancollect int,canupload int,gpsupload int,"
-               "province int,city int,vin varchar,licenseplate varchar,licenseplatecolor int,dev_id varchar)");
+    query.exec("create table if not exists GW_USER_MANAGE(heartbeat int,ip varchar,port int,reply int,retrans int,speed int,overspeed int,cancollect int,canupload int,gpsupload int,"
+               "province int,city int,vin varchar,licenseplate varchar,licenseplatecolor int,dev_id varchar,delay_time int)");
 
-    query.prepare("SELECT * FROM M_USER_MANAGE");
+    query.prepare("SELECT * FROM GW_USER_MANAGE");
     query.exec();
     if(query.first()) {
         bool ok;
@@ -119,11 +128,12 @@ void System::initSystemPara()
         para.vin = query.value(12).toString();
         para.license_plate = query.value(13).toString();
         para.license_plate_color = query.value(14).toInt(&ok);
+        para.delay_time = query.value(16).toInt(&ok);
     } else {
         sysParaDefault();
-        query.prepare("INSERT INTO M_USER_MANAGE (heartbeat,ip,port,reply,retrans,speed,overspeed,cancollect,canupload,gpsupload,"
-                "province,city,vin,licenseplate,licenseplatecolor,dev_id) VALUES (:heartbeat,:ip,:port,:reply,:retrans,:speed,"
-                ":overspeed,:cancollect,:canupload,:gpsupload,:province,:city,:vin,:licenseplate,:licenseplatecolor,:dev_id)");
+        query.prepare("INSERT INTO GW_USER_MANAGE (heartbeat,ip,port,reply,retrans,speed,overspeed,cancollect,canupload,gpsupload,"
+                "province,city,vin,licenseplate,licenseplatecolor,dev_id,delay_time) VALUES (:heartbeat,:ip,:port,:reply,:retrans,:speed,"
+                ":overspeed,:cancollect,:canupload,:gpsupload,:province,:city,:vin,:licenseplate,:licenseplatecolor,:dev_id,:delay_time)");
         query.bindValue(0,para.heartbeat_cycle);
         query.bindValue(1,para.ip);
         query.bindValue(2,para.port);
@@ -140,6 +150,7 @@ void System::initSystemPara()
         query.bindValue(13,para.license_plate);
         query.bindValue(14,para.license_plate_color);
         query.bindValue(15,para.dev_id);
+        query.bindValue(16,para.delay_time);
         query.exec();
     }
 
@@ -152,12 +163,6 @@ void System::initSystemPara()
     dev_id[3] = (defdev_id[6]<<4)|(defdev_id[7]&0xf);
     dev_id[4] = (defdev_id[8]<<4)|(defdev_id[9]&0xf);
     dev_id[5] = (defdev_id[10]<<4)|(defdev_id[11]&0xf);
-
-//    if(para.dial_user.isEmpty() || para.dial_pass.isEmpty()) {
-//         para.dial_user = CONFIG_NAME;
-//         para.dial_pass = CONFIG_PASS;
-//     }
-
 }
 
 void System::sysParaDefault()
@@ -181,14 +186,14 @@ void System::sysParaDefault()
     para.vin = SystemUtils::utf8ToUnicode("");
     para.license_plate = SystemUtils::utf8ToUnicode("浙A.123456");
     para.license_plate_color = 0xff;
-
+    para.delay_time = 10;
 }
 
 void System::devInfoDefault()
 {
     manufacturer = "TOYOU";
     productionDate = "20190701";
-    model = "gw-zb";
+    model = "wg-zb";
     serialNumber.fill(0x38,18);
     hardwareVersion = "REV1.01";
 }
@@ -211,8 +216,8 @@ void System::getSystemPara(sys_para* data)
     data->license_plate = para.license_plate;
     data->license_plate_color = para.license_plate_color;
     data->dev_id = para.dev_id;
-//    data->dial.dial_user = para.dial.dial_user;
-//    data->dial.dial_pass = para.dial.dial_pass;
+    data->delay_time = para.delay_time;
+    readPass(data);
 }
 
 void System::setSystemPara(sys_para data)
@@ -310,18 +315,19 @@ void System::setSystemPara(sys_para data)
         flag = true;
     }
 
-//    if(para.dial_user.compare(data.dial_user) != 0) {
-//        para.dial_user = data.dial_user;
-//        paraFlag |= PARA_TYPE_CONF_NAME_PASS;
-//        flag = true;
-//    }
+    if(para.login_pass.compare(data.login_pass) != 0) {
+        para.login_pass = data.login_pass;
+        paraFlag |= PARA_TYPE_LOGIN_PASS;
+        qWarning()<<"***login pass:"<<para.login_pass.toLatin1();
+        flag = true;
+    }
 
-//    if(para.dial_pass.compare(data.dial_pass) != 0) {
-//        para.dial_pass = data.dial_pass;
-//        paraFlag |= PARA_TYPE_CONF_NAME_PASS;
-//        qWarning()<<"***conf_pass:"<<para.dial_pass.toLatin1();
-//        flag = true;
-//    }
+    if(para.delay_time != data.delay_time) {
+        para.delay_time = data.delay_time;
+        paraFlag |= PARA_TYPE_DELAY_TIME;
+        qWarning("***delay time: %d" ,(uint32)para.delay_time);
+        flag = true;
+    }
 
     if(0 != para.dev_id.compare(data.dev_id)) {
         para.dev_id = data.dev_id;
@@ -344,9 +350,9 @@ void System::setSystemPara(sys_para data)
     }
 
     if(flag) {
-        query.prepare("update M_USER_MANAGE set heartbeat=?,ip=?,port=?,reply=?,retrans=?,"
+        query.prepare("update GW_USER_MANAGE set heartbeat=?,ip=?,port=?,reply=?,retrans=?,"
                       "speed=?,overspeed=?,cancollect=?,canupload=?,gpsupload=?,province=?,"
-                      "city=?,vin=?,licenseplate=?,licenseplatecolor=?,dev_id=?");
+                      "city=?,vin=?,licenseplate=?,licenseplatecolor=?,dev_id=?,delay_time=?");
         query.bindValue(0,para.heartbeat_cycle);
         query.bindValue(1,para.ip);
         query.bindValue(2,para.port);
@@ -363,8 +369,13 @@ void System::setSystemPara(sys_para data)
         query.bindValue(13,para.license_plate);
         query.bindValue(14,para.license_plate_color);
         query.bindValue(15,para.dev_id);
+        query.bindValue(16,para.delay_time);
         query.exec();
-        writeConf(para);
+
+        if(paraFlag&PARA_TYPE_IP || paraFlag&PARA_TYPE_DEV_ID || paraFlag&PARA_TYPE_PORT)
+            writeConf(para);
+        if(paraFlag&PARA_TYPE_LOGIN_PASS)
+            writePass(para);
     }
 }
 
@@ -403,16 +414,17 @@ void System::getBuildDate() {
     buildDate = pDest_y + pDest_m + pDest_d + rang;
 }
 
-QString System::toUiVersion() {
-    QString Version = softwareVersion;
+//QString System::toUiVersion() {
+//    QString Version = softwareVersion;
 
-    Version = Version.insert(0,"V").insert(3,".").insert(6,".").insert(9,".");
-    return Version;
-}
+//    Version = Version.insert(0,"V").insert(3,".").insert(6,".").insert(9,".");
+//    return Version;
+//}
 
 int System::readConf(sys_para* data)
 {
     QFile fd(CONFIG_FILE);
+    bool ok;
 
     if(!fd.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning()<<"Open failed.";
@@ -452,7 +464,9 @@ int System::readConf(sys_para* data)
             if(!name.compare("port"))
             {
                 qWarning()<<"Port : "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
-                data->port = lineStr.mid(i+1).toInt();
+                uint32 port = (uint32)lineStr.mid(i+1).toInt(&ok);
+//                if(port < 1000)
+                data->port = port;
                 flag += 1;
                 continue;
             }
@@ -463,35 +477,67 @@ int System::readConf(sys_para* data)
                 flag += 1;
                 continue;
             }
-//            if(!name.compare("user"))
-//            {
-//                qWarning()<<"USER ： "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
-//                data->dial.dial_user = lineStr.mid(i+1);
-//                continue;
-//            }
-//            if(!name.compare("pass"))
-//            {
-//                qWarning()<<"PASS ： "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
-//                data->dial.dial_pass = lineStr.mid(i+1);
-//                continue;
-//            }
-//            if(!name.compare("apn"))
-//            {
-//                qWarning()<<"APN ： "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
-//                data->dial.dial_apn = lineStr.mid(i+1);
-//                continue;
-//            }
-//            if(!name.compare("pin"))
-//            {
-//                qWarning()<<"PIN ： "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
-//                data->dial.dial_pin = lineStr.mid(i+1);
-//                continue;
-//            }
         }
     }
     fd.close();
 
     if (flag < 3)
+        return -1;
+
+    return 0;
+}
+
+int System::readPass(sys_para* data)
+{
+    QFile fd(PASS_FILE);
+
+    if(!fd.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning()<<"Open failed.";
+        return -1;
+    }
+
+    QTextStream txtInput(&fd);
+    QString lineStr;
+    QString name;
+    uint flag;
+
+    while (!txtInput.atEnd())
+    {
+        lineStr = txtInput.readLine();
+
+        if(lineStr.isEmpty())
+            continue;
+        if(lineStr.at(0) == '#'||lineStr.at(0) == ' ')
+        {
+            continue;
+        }
+        else
+        {
+            int i = lineStr.indexOf('=', 0);
+            if(i < 0)
+                break;
+
+            name = lineStr.mid(0, i);
+
+            if(!name.compare("login_pass"))
+            {
+                qWarning()<<"login_pass ： "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
+                data->login_pass = lineStr.mid(i+1);
+                flag += 1;
+                continue;
+            }
+            if(!name.compare("login_user"))
+            {
+                qWarning()<<"login_user : "<<lineStr.mid(i+1).toLatin1();  // i+1 去掉 =
+                data->login_user = lineStr.mid(i+1).toInt();
+                flag += 1;
+                continue;
+            }
+        }
+    }
+    fd.close();
+
+    if (flag < 2)
         return -1;
 
     return 0;
@@ -538,34 +584,50 @@ int System::writeConf(sys_para data) {
                 }
                 if(!name.compare("port")) {
                     flag += 4;
-                    lineStr = name + "=" + data.port;
+                    lineStr = name + "=" + QString::number(data.port);
                 }
             }
         }
         txtOutput<<lineStr<<endl;
     }
     if (flag == 0) {
-        txtOutput<<"ip="<<data.dev_id<<endl;
-        txtOutput<<"id"<<data.ip<<endl;
+        txtOutput<<"ip="<<data.ip<<endl;
+        txtOutput<<"id="<<data.dev_id<<endl;
         txtOutput<<"port="<<data.port<<endl;
     } else if (flag == 1) {
-        txtOutput<<"ip="<<data.dev_id<<endl;
+        txtOutput<<"id="<<data.dev_id<<endl;
         txtOutput<<"port="<<data.port<<endl;
     } else if(flag == 2) {
-        txtOutput<<"ip="<<data.dev_id<<endl;
+        txtOutput<<"ip="<<data.ip<<endl;
         txtOutput<<"port="<<data.port<<endl;
     } else if (flag == 3) {
         txtOutput<<"port="<<data.port<<endl;
     } else if (flag == 4) {
-        txtOutput<<"ip="<<data.dev_id<<endl;
-        txtOutput<<"id"<<data.ip<<endl;
+        txtOutput<<"ip="<<data.ip<<endl;
+        txtOutput<<"id="<<data.dev_id<<endl;
     } else if (flag == 5) {
-        txtOutput<<"ip="<<data.dev_id<<endl;
+        txtOutput<<"id="<<data.dev_id<<endl;
     } else if (flag == 6) {
-        txtOutput<<"id"<<data.ip<<endl;
+        txtOutput<<"ip="<<data.ip<<endl;
     }
     fd.remove();
     fd.close();
     fd1.rename(CONFIG_FILE);
     fd1.close();
+    return 0;
+}
+
+int System::writePass(sys_para data) {
+    QFile fd(PASS_FILE);
+
+    if(!fd.open(QIODevice::ReadWrite)) {
+        qWarning()<<"Open failed.";
+        return -1;
+    }
+
+     QTextStream txtOutput(&fd);
+     txtOutput<<"login_user="<<data.login_user<<endl;
+     txtOutput<<"login_pass="<<data.login_pass<<endl;
+     fd.close();
+     return 0;
 }

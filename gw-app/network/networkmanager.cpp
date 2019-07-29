@@ -2,6 +2,7 @@
 #include "common/systemutils.h"
 #include "network/socketconstant.h"
 #include "common/mydebug.h"
+#include "gpio/gpio.h"
 
 #define CLIENT_CONNECT_INTERVAL 5*60
 #define CLIENT_SIGNUP_INTERVAL  3*60
@@ -126,7 +127,7 @@ void NetworkManager::clientHeartbeat()  //终端心跳
 //    qWarning()<<pack.toHex()<<"\n";
     uint16 attr = pack.size();
     pack = SystemUtils::u16ToQByteArray(id) + SystemUtils::u16ToQByteArray(attr)
-            + sys->dev_id + SystemUtils::u16ToQByteArray(mHeartbeatBatch) + pack;
+            + sys->dev_id + SystemUtils::u16ToQByteArray(mHeartbeatBatch) + pack + gpioInputData;
 //    qWarning()<<pack.toHex()<<"\n";
     mSocketClient->send(pack);
     mHeartbeatFlag = false;
@@ -329,51 +330,57 @@ void NetworkManager::queryClientParaHandler(Message msg) //服务器查询参数
     uint16 batch = SystemUtils::rand16();
     QByteArray data = SystemUtils::u16ToQByteArray(msg.batch);
     if(size == 0) {
-        data += SystemUtils::u8ToQByteArray(14);
+        data += SystemUtils::u8ToQByteArray(PARA_NUMER);  // 参数个数
+
         data += SystemUtils::u16ToQByteArray(PARA_HEARTBEAT);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.heartbeat_cycle);
+
         data += SystemUtils::u16ToQByteArray(PARA_IP);
         data += SystemUtils::u8ToQByteArray(para.ip.size());
         data += para.ip.toLatin1();
+
         data += SystemUtils::u16ToQByteArray(PARA_PORT);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.port);
+
         data += SystemUtils::u16ToQByteArray(PARA_REPLY_TIMEOUT);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.reply_timeout);
+
         data += SystemUtils::u16ToQByteArray(PARA_RETRANS);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.max_retrans);
+
         data += SystemUtils::u16ToQByteArray(PARA_SPEED);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.max_speed);
+
         data += SystemUtils::u16ToQByteArray(PARA_OVERSPEED_TIME);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.overspeed_time);
+
         data += SystemUtils::u16ToQByteArray(PARA_CAN_ACQUISITION);
         data += SystemUtils::u8ToQByteArray(4);
         data += SystemUtils::u32ToQByteArray(para.can_collect_interval);
+
         data += SystemUtils::u16ToQByteArray(PARA_CAN_UPLOAD);
         data += SystemUtils::u8ToQByteArray(2);
         data += SystemUtils::u16ToQByteArray(para.can_upload_interval);
+
         data += SystemUtils::u16ToQByteArray(PARA_GPS_UPLOAD);
         data += SystemUtils::u8ToQByteArray(2);
         data += SystemUtils::u16ToQByteArray(para.gps_upload_interval);
+
         data += SystemUtils::u16ToQByteArray(PARA_PROVINCE_ID);
         data += SystemUtils::u8ToQByteArray(2);
         data += SystemUtils::u16ToQByteArray(para.province_id);
+
         data += SystemUtils::u16ToQByteArray(PARA_CITY_ID);
         data += SystemUtils::u8ToQByteArray(2);
         data += SystemUtils::u16ToQByteArray(para.city_id);
-//        data += SystemUtils::u16ToQByteArray(PARA_CONF_NAME);
-//        data += SystemUtils::u8ToQByteArray(para.conf_user.size());
-//        data += para.conf_user.toLatin1();
-//        data += SystemUtils::u16ToQByteArray(PARA_CONF_PASS);
-//        data += SystemUtils::u8ToQByteArray(para.conf_pass.size());
-//        data += para.conf_pass.toLatin1();
-        data += SystemUtils::u16ToQByteArray(PARA_LICENSE_PLATE);
 
+        data += SystemUtils::u16ToQByteArray(PARA_LICENSE_PLATE);
         QByteArray tmpbytes;
         if(para.license_plate_color == 0) {
             tmpbytes = SystemUtils::unicodeToGbk(para.vin);
@@ -385,6 +392,14 @@ void NetworkManager::queryClientParaHandler(Message msg) //服务器查询参数
         data += SystemUtils::u16ToQByteArray(PARA_LICENSE_PLATE_COLOR);
         data += SystemUtils::u8ToQByteArray(1);
         data += SystemUtils::u8ToQByteArray(para.license_plate_color);
+
+        data += SystemUtils::u16ToQByteArray(PARA_DELAY_TIME);
+        data += SystemUtils::u8ToQByteArray(4);
+        data += SystemUtils::u32ToQByteArray(para.delay_time);
+
+        data += SystemUtils::u16ToQByteArray(PARA_LOGIN_PASS);
+        data += SystemUtils::u8ToQByteArray(para.login_pass.size());
+        data += para.login_pass.toLatin1();
     } else {
         data += SystemUtils::u8ToQByteArray(count);
         for(quint8 i=0;i<count;i++)
@@ -484,17 +499,16 @@ void NetworkManager::queryClientParaHandler(Message msg) //服务器查询参数
                     data += SystemUtils::u8ToQByteArray(para.license_plate_color);
                     break;
 
-/*                case PARA_CONF_NAME:
-                    data += SystemUtils::u16ToQByteArray(PARA_CONF_NAME);
-                    data += SystemUtils::u8ToQByteArray(para.conf_user.size());
-                    data += para.conf_user.toLatin1();
+                case PARA_DELAY_TIME:
+                    data += SystemUtils::u16ToQByteArray(PARA_DELAY_TIME);
+                    data += SystemUtils::u8ToQByteArray(4);
+                    data += SystemUtils::u32ToQByteArray(para.delay_time);
                     break;
-                case PARA_CONF_PASS:
-                    data += SystemUtils::u16ToQByteArray(PARA_CONF_PASS);
-                    data += SystemUtils::u8ToQByteArray(para.conf_pass.size());
-                    data += para.conf_pass.toLatin1();
+                case PARA_LOGIN_PASS:
+                    data += SystemUtils::u16ToQByteArray(PARA_LOGIN_PASS);
+                    data += SystemUtils::u8ToQByteArray(para.login_pass.size());
+                    data += para.login_pass.toLatin1();
                     break;
-                    */
             }
         }
     }
@@ -651,6 +665,9 @@ void NetworkManager::timeout()
                     mHeartbeatTime -= 1;
                 } else {
                     clientHeartbeat();
+/*                    for(int i = 0; i < 8; i--) {
+                        ioctl()
+                    } */
                 }
 
                 NetworkMessage::NetMessage netmsg;
@@ -983,4 +1000,8 @@ void NetworkManager::gpsHandler(gps_data data)
 void NetworkManager::haveIMSI() {
     clientSignUp();
     mSignUpTime = CLIENT_SIGNUP_INTERVAL;
+}
+
+void NetworkManager::gpioInputHandler(unsigned char data) {
+    gpioInputData = SystemUtils::u8ToQByteArray(data);
 }

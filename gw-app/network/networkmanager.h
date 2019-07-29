@@ -48,6 +48,7 @@ private:
     QTimer* mTimer;
     System* sys;
     sys_para para;
+    QByteArray gpioInputData;
     QString authentication_code;
 //    LedWorker RE485_1;
 
@@ -64,6 +65,9 @@ private:
     volatile int32 mHeartbeatCount;
     volatile bool mHeartbeatFlag;
     volatile int32 gpsUploadTime;
+
+    volatile uint8 rec_status;
+    volatile uint8 send_status;
     
 signals:
     void toLed(Message msg);
@@ -76,6 +80,7 @@ public slots:
     void canHandler(Message msg);
     void gpsHandler(gps_data data);
     void localHandler(Message msg);
+    void gpioInputHandler(unsigned char data);
 
 private slots:
     void timeout();

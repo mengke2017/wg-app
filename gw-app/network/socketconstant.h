@@ -48,6 +48,7 @@
 #define RESULT_FIAL 1
 
 //Para ID
+#define PARA_NUMER                  16
 #define PARA_HEARTBEAT              0x0001
 #define PARA_IP                     0x0002
 #define PARA_PORT                   0x0003
@@ -62,6 +63,8 @@
 #define PARA_CITY_ID                0x0081
 #define PARA_LICENSE_PLATE          0x0082
 #define PARA_LICENSE_PLATE_COLOR    0x0083
+#define PARA_DELAY_TIME             0x0084
+#define PARA_LOGIN_PASS             0x0085
 
 //Transparent type
 #define LCD_TRANSPARENT 0x01

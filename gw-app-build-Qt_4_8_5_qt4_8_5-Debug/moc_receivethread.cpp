@@ -35,14 +35,14 @@ static const uint qt_meta_data_ReceiveThread[] = {
  // slots: signature, parameters, type, tag, flags
       36,   14,   14,   14, 0x0a,
       42,   14,   14,   14, 0x0a,
-      57,   54,   49,   14, 0x0a,
+      49,   14,   14,   14, 0x0a,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_ReceiveThread[] = {
     "ReceiveThread\0\0frame\0msg(can_frame)\0"
-    "run()\0stop()\0bool\0id\0filter(canid_t)\0"
+    "run()\0stop()\0slotInit()\0"
 };
 
 void ReceiveThread::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -54,8 +54,7 @@ void ReceiveThread::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         case 0: _t->msg((*reinterpret_cast< can_frame(*)>(_a[1]))); break;
         case 1: _t->run(); break;
         case 2: _t->stop(); break;
-        case 3: { bool _r = _t->filter((*reinterpret_cast< canid_t(*)>(_a[1])));
-            if (_a[0]) *reinterpret_cast< bool*>(_a[0]) = _r; }  break;
+        case 3: _t->slotInit(); break;
         default: ;
         }
     }

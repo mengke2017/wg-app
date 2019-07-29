@@ -16,6 +16,8 @@
 #include "common/systemutils.h"
 #include "common/fileutils.h"
 #include "system.h"
+#include "gpio/gpio_work.h"
+#include "stm/stmManager.h"
 
 class BackstageManager : public QObject
 {
@@ -32,6 +34,8 @@ private:
     BusBox* bus;
     NetworkManager* net;
     SimPort* sim;
+    gpioWork* gpioInput;
+    stmManager* stm;
 
     QTimer* timer;
     QTimer* wtd_timer;

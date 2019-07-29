@@ -7,6 +7,11 @@
 #define PACKET_IMSI_END   "\r\n\r\nOK"
 #define CMD_IMSI_NUMBER   "echo -e \"AT+CIMI\r\n\" > /dev/ttyUSB2"
 
+#define CMD_LOWPOWER_1      "echo -e \"AT+QSCLK=1\" > /dev/ttyUSB2"
+#define CMD_LOWPOWER_2      "echo -e \"AT+QURCCFG=\"urcport\",\"usbat\"\" > /dev/ttyUSB2"
+#define CMD_LOWPOWER_3      "echo -e \"AT+QCFG=\"apready\",1,0,200\" > /dev/ttyUSB2"
+
+
 #define PACKET_IMSI_START_SIZE 10
 #define PACKET_IMSI_END_SIZE 6
 
@@ -57,8 +62,8 @@ void SimPort::readMyCom()
 //        qWarning()<<"USB2:"<<comData.data()<<"\n";
         if (parsePacket() == true) {
 //            qWarning()<<"sys->sim_IMSI:"<<sys->sim_IMSI.toHex()<<"\n";
-            disconnect(com, SIGNAL(hasdata()), this, SLOT(readMyCom()));
-            close();
+//            disconnect(com, SIGNAL(hasdata()), this, SLOT(readMyCom()));
+//            close();
             sim_Timer->stop();
             emit getIMSISuccess();
         }
@@ -112,4 +117,10 @@ void SimPort::send(QByteArray data)
 void SimPort::slotTimeOut() {
     system(CMD_IMSI_NUMBER);
 //    qWarning(CMD_IMSI_NUMBER);
+}
+
+void SimPort::slotLowPower() {
+    system(CMD_LOWPOWER_1);
+    system(CMD_LOWPOWER_2);
+    system(CMD_LOWPOWER_3);
 }

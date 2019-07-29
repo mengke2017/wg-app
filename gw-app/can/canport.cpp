@@ -100,6 +100,7 @@ void CanPort::start(int32 n,bool isReceive)
         recvThread = new ReceiveThread(socket);
         connect(recvThread,SIGNAL(msg(can_frame)),this,SLOT(slotMsgHandler(can_frame)));
         recvThread->start();
+        connect(this, SIGNAL(init()), recvThread, SLOT(slotInit()));
     }
 }
 
@@ -124,4 +125,8 @@ void CanPort::slotMsgHandler(can_frame frame)
     isValue = true;
     can_list.append(frame);
     mutex.unlock();
+}
+
+void CanPort::can_init() {
+    emit init();
 }

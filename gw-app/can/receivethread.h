@@ -2,6 +2,7 @@
 #define RECEIVETHREAD_H
 
 #include <QThread>
+#include <QMutex>
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <linux/can.h>
@@ -29,15 +30,17 @@ signals:
 public slots:
     void run();
     void stop();
-    bool filter(canid_t id);
+    void slotInit();
 
 private:
+    QMutex mutex;
     int32 socket;
     bool running;
     canid_t canid_list[CAN_LIST_LEN];
 
 private:
     bool getConfigCanid(canid_t id_list[]);
+    bool filter(canid_t id);
 };
 
 #endif // RECEIVETHREAD_H

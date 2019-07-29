@@ -4,9 +4,10 @@
 #include "common/systemutils.h"
 #include "receivethread.h"
 #include "common/mydebug.h"
+#include "constant.h"
 
 #define CAN_FRAME_SIZE  sizeof(struct can_frame)
-#define CAN_CONFIG      "/usr/adapter/can_config.conf"
+#define CAN_CONFIG      CAN_CONFIG_PATH + "can_config.conf"
 
 ReceiveThread::ReceiveThread(int32 s,QObject *parent) :
     QThread(parent)
@@ -24,7 +25,7 @@ void ReceiveThread::run()
     struct sockaddr_can addr;
 
     if (!getConfigCanid(canid_list))
-        qWarning("open can configfile error!");
+        MY_WARNING("open can configfile error!");
 
     while(running)
     {
@@ -34,7 +35,6 @@ void ReceiveThread::run()
                 emit msg(frame);
             }
         }
-//        sleep(3);
     }
 }
 
@@ -45,22 +45,26 @@ void ReceiveThread::stop()
 bool ReceiveThread::getConfigCanid(canid_t id_list[]) {
     QFile file(CAN_CONFIG);
     uint32 value;
+    mutex.lock();
     if (!file.open( QIODevice::ReadOnly | QIODevice::Text ))
     {
+        mutex.unlock();
         return false;
     }
     QTextStream txtInput(&file);
     QString lineStr;
     int i = 0;
+    memset(id_list, 0, CAN_LIST_LEN);
     while(!txtInput.atEnd()) {
         lineStr = txtInput.readLine();
 
         if(lineStr.isEmpty())    continue;
         if(lineStr.at(0) == '#')    continue;
-//        qWarning()<<lineStr.toLatin1();
+        qWarning()<<lineStr.toLatin1();
         if(SystemUtils::stringToHex(lineStr, &value)) {
             if(i >= CAN_LIST_LEN) {
                 file.close();
+                mutex.unlock();
                 return true;
             }
             id_list[i] = value;
@@ -68,6 +72,7 @@ bool ReceiveThread::getConfigCanid(canid_t id_list[]) {
         }
     }
     file.close();
+    mutex.unlock();
     return true;
 }
 bool ReceiveThread::filter(canid_t id) {
@@ -78,4 +83,9 @@ bool ReceiveThread::filter(canid_t id) {
         }
     }
     return false;
+}
+
+void ReceiveThread::slotInit() {
+    getConfigCanid(canid_list);
+//    qWarning("can init!!!!!!!!!!!!!!!!!!");
 }

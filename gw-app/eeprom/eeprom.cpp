@@ -51,3 +51,14 @@ int32 Eeprom::read(void* data,int32 len)
 
     return size;
 }
+
+int32 Eeprom::write(void* data,int32 len) {
+    int32 size = 0;
+
+    mutex_w.lock();
+    size = ::write(fd,data,len);
+    mutex_w.unlock();
+
+    return size;
+
+}

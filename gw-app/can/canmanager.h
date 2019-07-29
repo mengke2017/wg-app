@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QMutex>
 #include "type.h"
 #include "common/message.h"
 #include "can/canport.h"
@@ -22,6 +23,7 @@ public:
     ~CanManager();
     
 private:
+    QMutex mute;
     System* sys;
     sys_para para;
     CanPort* canPort;
@@ -37,6 +39,9 @@ signals:
 
 private:
     void rmRepeatID (can_frame can);
+
+public:
+    void can_init();
 
 private slots:
     void timeout();

@@ -30,6 +30,8 @@ void BusBox::slotComDataHandler(QByteArray data)
     uint16 index = 7;
     while((index+3) < size) {
         busdata.type = data.at(index);
+        if (data.at(index+1) == 0 && data.at(index+2) == 0)
+            return;
         busdata.len = (data.at(index+1)<<8)|data.at(index+2);
         index += 3;
         if((index+busdata.len) <= size) {

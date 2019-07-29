@@ -66,7 +66,7 @@ bool GpsPort::parsePacket()
     static QByteArray tmp;
 
     int32 startIndex = comData.indexOf(PACKET_START_1);
-//    qWarning()<<"comData:"<<comData.toHex();
+//    qWarning()<<"gpsData:"<<comData.toHex();
 //    qWarning()<<"comData:"<<comData;
     if(startIndex < 0) {
         startIndex = comData.indexOf(PACKET_START_2);

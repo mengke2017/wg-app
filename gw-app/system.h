@@ -24,18 +24,15 @@
 #define PARA_TYPE_LICENSE_PLATE     0x1000
 #define PARA_TYPE_LICENSE_PLATE_COLOR   0x2000
 #define PARA_TYPE_DEV_ID            0x4000
-#define PARA_TYPE_CONF_NAME_PASS    0x8000
+#define PARA_TYPE_LOGIN_PASS        0x8000
+#define PARA_TYPE_DELAY_TIME        0x2000
 
 typedef struct {
-//    uint8 name[12];  // 设备名
     uint8 date[8];  // 生产日期
     uint8 manufacturer[5];  // 制造商
     uint8 model[10];  // 型号
     uint8 number[18];  // 设备序列号
     uint8 version[8];  // 硬件版本号
-
-//    uint8 conf_user[10]; //配置用户名
-//    uint8 conf_pass[10];  //配置密码
     uint16 crc;
 }device_info;
 
@@ -43,13 +40,6 @@ typedef struct {
     volatile uint8 id;
     bool is_connect;
 } Device_S;
-
-//typedef struct {
-//    QString dial_user;  // 拨号用户名
-//    QString dial_pass;  // 密码
-//    QString dial_apn;
-//    QString dial_pin;
-//} DIAL;
 
 typedef struct {
     volatile uint32 heartbeat_cycle;        //心跳间隔
@@ -69,8 +59,9 @@ typedef struct {
     QString license_plate;          //车牌号
     volatile uint8 license_plate_color;     //车牌颜色
 
- //   DIAL dial;
-
+    volatile uint8 delay_time;     // 延时关机时间
+    QString login_pass;             // 登录密码
+    QString login_user;
 }sys_para;
 
 class System
@@ -109,9 +100,12 @@ public:
     static System* getInstance();
     void getSystemPara(sys_para* data);
     void setSystemPara(sys_para data);
-    QString toUiVersion();
+//    QString toUiVersion();
     int readConf(sys_para* data);
     int writeConf(sys_para data);
+
+    int readPass(sys_para* data);
+    int writePass(sys_para data);
 //    void TEXT_connectDevice(System data, uint8 id);
 //    void toBCD_6(char **asc, char asc[]);
 //    void toASC_12(char **bcd, char bcd[]);

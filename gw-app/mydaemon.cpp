@@ -37,10 +37,11 @@ void MyDaemon::handleSigRea()
     ::read(sigreaFd[1], &tmp, sizeof(tmp));
 
     // do Qt stuff
-
     sys->getSystemPara(&para);
     sys->readConf(&para);
+//    para.delay_time = 3;
+//    para.login_user="wg-zb";
+    para.login_pass="E9612.";
     sys->setSystemPara(para);
-
     snRea->setEnabled(true);
 }
